@@ -1,0 +1,9 @@
+[package]
+name = "safe-core-orchestrator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+safe-core-policy = { path = "../safe-core-policy" }
+chrono = "0.4"
+thiserror = "1.0"
