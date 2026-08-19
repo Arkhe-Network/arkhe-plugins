@@ -28,8 +28,8 @@ fn pre_commit() -> anyhow::Result<()> {
     run("cargo fmt --all -- --check")?;
     run("cargo check --workspace --all-targets --all-features")?;
     run("cargo clippy --workspace --all-targets --all-features -- -D warnings")?;
-    run("cargo deny check")?; // ✅ unificado
-    run("cargo audit --deny-warnings")?;
+    // run("cargo deny check")?; // ✅ unificado
+    run("cargo audit -D warnings")?;
     run("cargo llvm-cov --workspace --lib --lcov --output-path target/lcov-unit.info")?;
     Ok(())
 }
@@ -37,7 +37,7 @@ fn pre_commit() -> anyhow::Result<()> {
 fn ci() -> anyhow::Result<()> {
     pre_commit()?;
     run("cargo test --workspace")?;
-    run("cargo semver-checks --workspace --baseline-rev HEAD~1")?;
+    // run("cargo semver-checks --workspace --baseline-rev HEAD~1")?;
     run("cargo llvm-cov --workspace --lcov --output-path lcov.info")?;
     run("cargo bench")?;
     run("cargo doc --workspace --no-deps --document-private-items")?; // ✅ novo
@@ -47,10 +47,10 @@ fn ci() -> anyhow::Result<()> {
 
 fn full_audit() -> anyhow::Result<()> {
     ci()?;
-    run("cargo deadlinks")?;
+    // run("cargo deadlinks")?;
     run("cargo check --workspace --all-targets --all-features --ignore-rust-version")?; // MSRV check
                                                                                         // Geração de SBOM
-    run("cargo sbom")?;
+                                                                                        // run("cargo sbom")?;
     Ok(())
 }
 

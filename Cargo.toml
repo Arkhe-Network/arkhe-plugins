@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "crates/xtask"]
+members = [".", "crates/xtask", "rust/kernel"]
 
 [workspace.package]
 rust-version = "1.91.0"
