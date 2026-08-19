@@ -1,6 +1,6 @@
+use crate::evolution::sepl::{EvolutionContext, Observation, Proposal};
 use crate::evolution::wallet_resource::WalletResource;
-use crate::evolution::sepl::{Observation, Proposal, EvolutionContext};
-use crate::integrations::eve::{EveClient, EveTask, EveStrategy};
+use crate::integrations::eve::{EveClient, EveStrategy, EveTask};
 use crate::thread::index::ThreadIndex;
 use std::collections::HashMap;
 use tracing::info;
@@ -12,7 +12,10 @@ pub struct WalletEvolutionOperator {
 
 impl WalletEvolutionOperator {
     pub fn new(eve_client: EveClient, thread_index: ThreadIndex) -> Self {
-        Self { eve_client, thread_index }
+        Self {
+            eve_client,
+            thread_index,
+        }
     }
 
     pub async fn reflect_wallet(
@@ -22,7 +25,10 @@ impl WalletEvolutionOperator {
     ) -> Result<Observation, String> {
         info!("🔍 [SEPL] Refletindo sobre carteira: {}", wallet.address);
 
-        let metrics = self.thread_index.get_usage_metrics(&wallet.metadata.id).await?;
+        let metrics = self
+            .thread_index
+            .get_usage_metrics(&wallet.metadata.id)
+            .await?;
         let prompt = format!(
             "Analyze wallet {} on chain {}. Balances: {:?}. Metrics: {:?}. Goal: {}. Identify spending patterns, opportunities for optimization, and risks.",
             wallet.address, wallet.config.chain, wallet.balances, metrics, context.goal

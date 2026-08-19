@@ -1,12 +1,20 @@
-use crate::integrations::x402::{X402RoyaltyServer, X402Client};
-use crate::evolution::desci_node_resource::{RoyaltyConfig, FreeTier, RoyaltySplit, DeSciNodeResource};
+use crate::evolution::desci_node_resource::{
+    DeSciNodeResource, FreeTier, RoyaltyConfig, RoyaltySplit,
+};
 use crate::evolution::identity_resource::IdentityResource;
+use crate::integrations::x402::{X402Client, X402RoyaltyServer};
 
 pub struct SecondSelfOrchestrator {
     pub x402_server: X402RoyaltyServer,
     pub x402_client: X402Client,
     pub identity: IdentityResource,
     pub base_url: String,
+}
+
+impl Default for SecondSelfOrchestrator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SecondSelfOrchestrator {
@@ -23,26 +31,49 @@ impl SecondSelfOrchestrator {
     }
 
     pub fn get_desci_node_mut(&mut self, node_id: &str) -> Result<DeSciNodeResource, String> {
-        Ok(DeSciNodeResource::new(node_id, "default_title", "default_npub", None))
+        Ok(DeSciNodeResource::new(
+            node_id,
+            "default_title",
+            "default_npub",
+            None,
+        ))
     }
 
     pub fn get_desci_node(&self, node_id: &str) -> Result<DeSciNodeResource, String> {
-        Ok(DeSciNodeResource::new(node_id, "default_title", "default_npub", None))
+        Ok(DeSciNodeResource::new(
+            node_id,
+            "default_title",
+            "default_npub",
+            None,
+        ))
     }
 
     pub async fn load_desci_node(&self, node_id: &str) -> Result<DeSciNodeResource, String> {
-        Ok(DeSciNodeResource::new(node_id, "default_title", "default_npub", None))
+        Ok(DeSciNodeResource::new(
+            node_id,
+            "default_title",
+            "default_npub",
+            None,
+        ))
     }
 
     pub async fn save_node_version(&mut self, _node: DeSciNodeResource) -> Result<(), String> {
         Ok(())
     }
 
-    pub async fn get_component_data(&self, _dpid: &str, _component_id: &str) -> Result<Vec<u8>, String> {
+    pub async fn get_component_data(
+        &self,
+        _dpid: &str,
+        _component_id: &str,
+    ) -> Result<Vec<u8>, String> {
         Ok(vec![])
     }
 
-    pub async fn publish_desci_node(&mut self, _node: &mut DeSciNodeResource, _publish: bool) -> Result<String, String> {
+    pub async fn publish_desci_node(
+        &mut self,
+        _node: &mut DeSciNodeResource,
+        _publish: bool,
+    ) -> Result<String, String> {
         Ok("dpid_42".to_string())
     }
 
@@ -57,7 +88,8 @@ impl SecondSelfOrchestrator {
 
         let now = chrono::Utc::now().timestamp() as u64;
 
-        let royalty_splits: Vec<RoyaltySplit> = splits.into_iter()
+        let royalty_splits: Vec<RoyaltySplit> = splits
+            .into_iter()
             .map(|(npub, share)| {
                 let orcid = None;
                 let eth_address = self.x402_server.npub_to_eth_address(&npub);
@@ -86,7 +118,8 @@ impl SecondSelfOrchestrator {
             updated_at: now,
         });
 
-        self.x402_server.protect_route(node.royalty_config.as_ref().unwrap());
+        self.x402_server
+            .protect_route(node.royalty_config.as_ref().unwrap());
 
         self.save_node_version(node).await?;
         Ok(())
@@ -100,11 +133,17 @@ impl SecondSelfOrchestrator {
     ) -> Result<Vec<u8>, String> {
         let node = self.get_desci_node(dpid)?;
 
-        let url = format!("{}/desci/{}/components/{}", self.base_url, dpid, component_id);
+        let url = format!(
+            "{}/desci/{}/components/{}",
+            self.base_url, dpid, component_id
+        );
 
         if let Some(royalty) = &node.royalty_config {
             if royalty.enabled {
-                return self.x402_client.download_with_payment(&url, wallet_private_key).await;
+                return self
+                    .x402_client
+                    .download_with_payment(&url, wallet_private_key)
+                    .await;
             }
         }
 

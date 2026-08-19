@@ -1,11 +1,17 @@
-use crate::evolution::wallet_resource::WalletResource;
 use crate::evolution::identity_resource::IdentityResource;
-use crate::evolution::secret_resource::SecretResource;
 use crate::evolution::resource::Resource;
+use crate::evolution::secret_resource::SecretResource;
+use crate::evolution::wallet_resource::WalletResource;
 use std::collections::HashMap;
 
 pub struct ResourceRegistry {
     resources: HashMap<String, Box<dyn Resource>>,
+}
+
+impl Default for ResourceRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ResourceRegistry {
@@ -16,7 +22,8 @@ impl ResourceRegistry {
     }
 
     pub async fn register(&mut self, resource: Box<dyn Resource>) -> Result<(), String> {
-        self.resources.insert(resource.metadata().id.clone(), resource);
+        self.resources
+            .insert(resource.metadata().id.clone(), resource);
         Ok(())
     }
 
@@ -33,7 +40,11 @@ impl ResourceRegistry {
         self.register(resource).await
     }
 
-    pub async fn get_wallet(&mut self, chain: &str, address: &str) -> Result<Option<WalletResource>, String> {
+    pub async fn get_wallet(
+        &mut self,
+        chain: &str,
+        address: &str,
+    ) -> Result<Option<WalletResource>, String> {
         let id = format!("wallet:{}:{}", chain, address);
         match self.get(&id).await? {
             Some(res) => {

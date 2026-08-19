@@ -1,6 +1,6 @@
-use crate::evolution::resource::{Resource, ResourceMetadata, ResourceInterface, ResourceState};
+use crate::evolution::resource::{Resource, ResourceInterface, ResourceMetadata, ResourceState};
 use crate::evolution::wallet_resource::WalletResource;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IdentityMetadata {
@@ -44,9 +44,18 @@ pub enum AuthorizationAction {
 pub enum Condition {
     AllowList(Vec<String>),
     DenyList(Vec<String>),
-    Threshold { min_amount: String, max_amount: String },
-    TimeRange { start: u64, end: u64 },
-    Custom { key: String, value: serde_json::Value },
+    Threshold {
+        min_amount: String,
+        max_amount: String,
+    },
+    TimeRange {
+        start: u64,
+        end: u64,
+    },
+    Custom {
+        key: String,
+        value: serde_json::Value,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -100,25 +109,25 @@ impl IdentityResource {
                 updated_at: now,
             },
             wallets: Vec::new(),
-            policies: vec![
-                AuthorizationPolicy {
-                    name: "default".to_string(),
-                    rules: vec![
-                        AuthorizationRule {
-                            action: AuthorizationAction::All,
-                            resource_type: "*".to_string(),
-                            conditions: Vec::new(),
-                            effect: Effect::Allow,
-                        }
-                    ],
-                }
-            ],
+            policies: vec![AuthorizationPolicy {
+                name: "default".to_string(),
+                rules: vec![AuthorizationRule {
+                    action: AuthorizationAction::All,
+                    resource_type: "*".to_string(),
+                    conditions: Vec::new(),
+                    effect: Effect::Allow,
+                }],
+            }],
             trusted_agents: Vec::new(),
         }
     }
 
     pub fn add_wallet(&mut self, wallet: WalletResource) -> Result<(), String> {
-        if self.wallets.iter().any(|w| w.config.chain == wallet.config.chain) {
+        if self
+            .wallets
+            .iter()
+            .any(|w| w.config.chain == wallet.config.chain)
+        {
             return Err(format!("Carteira para {} já existe", wallet.config.chain));
         }
         self.wallets.push(wallet);
@@ -127,11 +136,15 @@ impl IdentityResource {
     }
 
     pub fn get_wallet(&self, chain: &str) -> Option<&WalletResource> {
-        self.wallets.iter().find(|w| w.config.chain.to_string() == chain)
+        self.wallets
+            .iter()
+            .find(|w| w.config.chain.to_string() == chain)
     }
 
     pub fn get_wallet_mut(&mut self, chain: &str) -> Option<&mut WalletResource> {
-        self.wallets.iter_mut().find(|w| w.config.chain.to_string() == chain)
+        self.wallets
+            .iter_mut()
+            .find(|w| w.config.chain.to_string() == chain)
     }
 
     pub fn add_policy(&mut self, policy: AuthorizationPolicy) {
@@ -165,14 +178,23 @@ impl IdentityResource {
 }
 
 impl Resource for IdentityResource {
-    fn metadata(&self) -> &ResourceMetadata { &self.metadata }
-    fn metadata_mut(&mut self) -> &mut ResourceMetadata { &mut self.metadata }
-    fn as_any(&self) -> &dyn std::any::Any { self }
-    fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
+    fn metadata(&self) -> &ResourceMetadata {
+        &self.metadata
+    }
+    fn metadata_mut(&mut self) -> &mut ResourceMetadata {
+        &mut self.metadata
+    }
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
     fn to_bytes(&self) -> Result<Vec<u8>, String> {
         serde_json::to_vec(self).map_err(|e| format!("Erro ao serializar IdentityResource: {}", e))
     }
     fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-        serde_json::from_slice(bytes).map_err(|e| format!("Erro ao deserializar IdentityResource: {}", e))
+        serde_json::from_slice(bytes)
+            .map_err(|e| format!("Erro ao deserializar IdentityResource: {}", e))
     }
 }

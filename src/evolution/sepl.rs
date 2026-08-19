@@ -1,12 +1,12 @@
-use crate::skill::builtin::qvac_inference::{QVACInferenceExecutor, QVACConfig};
+use crate::evolution::resource::Resource;
 use crate::hashtree::adapter::HashTreeStorage;
+use crate::integrations::eve::{EveClient, EveStrategy, EveTask};
 use crate::observability::trace_manager::TraceManager;
-use crate::integrations::eve::{EveClient, EveTask, EveStrategy};
+use crate::skill::builtin::qvac_inference::{QVACConfig, QVACInferenceExecutor};
 use crate::thread::index::ThreadIndex;
+use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{info, warn};
-use crate::evolution::resource::Resource;
-use std::collections::HashMap;
 
 pub struct AutogenesisOperator {
     pub eve_client: EveClient,
@@ -80,16 +80,28 @@ impl AutogenesisOperator {
         context: &EvolutionContext,
         resource: &dyn Resource,
     ) -> Result<Observation, String> {
-        info!("🔍 [SEPL] Refletindo sobre recurso: {}", context.resource_id);
+        info!(
+            "🔍 [SEPL] Refletindo sobre recurso: {}",
+            context.resource_id
+        );
 
-        let metrics = self.thread_index.get_usage_metrics(&context.resource_id).await?;
+        let metrics = self
+            .thread_index
+            .get_usage_metrics(&context.resource_id)
+            .await?;
         let prompt = format!(
             "Analyze resource '{}' (version {}). Metrics: {:?}. Goal: {}. Produce structured observation.",
             context.resource_id, resource.metadata().version, metrics, context.goal
         );
 
-        let trace_id = self.trace_manager.start_trace(&context.resource_id).await.ok();
-        let response = self.infer_with_strategy(&prompt, trace_id.as_deref()).await?;
+        let trace_id = self
+            .trace_manager
+            .start_trace(&context.resource_id)
+            .await
+            .ok();
+        let response = self
+            .infer_with_strategy(&prompt, trace_id.as_deref())
+            .await?;
 
         Ok(Observation {
             resource_id: context.resource_id.clone(),
@@ -107,15 +119,24 @@ impl AutogenesisOperator {
         observation: &Observation,
         context: &EvolutionContext,
     ) -> Result<Proposal, String> {
-        info!("💡 [SEPL] Propondo evolução para: {}", observation.resource_id);
+        info!(
+            "💡 [SEPL] Propondo evolução para: {}",
+            observation.resource_id
+        );
 
         let prompt = format!(
             "Based on observation: {:?}, propose concrete changes with rationale and expected improvement.",
             observation
         );
 
-        let trace_id = self.trace_manager.start_trace(&context.resource_id).await.ok();
-        let _response = self.infer_with_strategy(&prompt, trace_id.as_deref()).await?;
+        let trace_id = self
+            .trace_manager
+            .start_trace(&context.resource_id)
+            .await
+            .ok();
+        let _response = self
+            .infer_with_strategy(&prompt, trace_id.as_deref())
+            .await?;
 
         Ok(Proposal {
             resource_id: observation.resource_id.clone(),
@@ -165,6 +186,10 @@ pub struct Change {
     pub description: String,
 }
 
-pub enum ChangeType { ParameterTuning }
+pub enum ChangeType {
+    ParameterTuning,
+}
 
-pub struct Verification { pub success: bool }
+pub struct Verification {
+    pub success: bool,
+}

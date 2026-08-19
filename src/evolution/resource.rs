@@ -6,9 +6,19 @@ pub trait Resource: Send + Sync {
     fn as_any(&self) -> &dyn std::any::Any;
     fn as_any_mut(&mut self) -> &mut dyn std::any::Any;
     fn to_bytes(&self) -> Result<Vec<u8>, String>;
-    fn from_bytes(bytes: &[u8]) -> Result<Self, String> where Self: Sized;
+    fn from_bytes(bytes: &[u8]) -> Result<Self, String>
+    where
+        Self: Sized;
     fn bump_version(&mut self, _rationale: &str) {}
-    fn add_provenance(&mut self, _action: &str, _author: &str, _details: &str, _prev: Option<&str>, _tx: Option<&str>) {}
+    fn add_provenance(
+        &mut self,
+        _action: &str,
+        _author: &str,
+        _details: &str,
+        _prev: Option<&str>,
+        _tx: Option<&str>,
+    ) {
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,7 +36,9 @@ pub struct ResourceMetadata {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ResourceState { Active }
+pub enum ResourceState {
+    Active,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourceInterface {
@@ -68,10 +80,22 @@ impl SkillResource {
     }
 }
 impl Resource for SkillResource {
-    fn metadata(&self) -> &ResourceMetadata { &self.metadata }
-    fn metadata_mut(&mut self) -> &mut ResourceMetadata { &mut self.metadata }
-    fn as_any(&self) -> &dyn std::any::Any { self }
-    fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
-    fn to_bytes(&self) -> Result<Vec<u8>, String> { Ok(vec![]) }
-    fn from_bytes(_bytes: &[u8]) -> Result<Self, String> { Err("Not implemented".to_string()) }
+    fn metadata(&self) -> &ResourceMetadata {
+        &self.metadata
+    }
+    fn metadata_mut(&mut self) -> &mut ResourceMetadata {
+        &mut self.metadata
+    }
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
+    fn to_bytes(&self) -> Result<Vec<u8>, String> {
+        Ok(vec![])
+    }
+    fn from_bytes(_bytes: &[u8]) -> Result<Self, String> {
+        Err("Not implemented".to_string())
+    }
 }
