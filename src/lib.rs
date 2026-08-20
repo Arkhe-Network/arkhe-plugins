@@ -1,9 +1,9 @@
+pub mod cli;
 pub mod error_handling;
 pub mod evolution;
+pub mod hashtree;
+pub mod integrations;
+pub mod observability;
 pub mod skill;
 pub mod swarm;
-pub mod cli;
-pub mod hashtree;
-pub mod observability;
-pub mod integrations;
 pub mod thread;

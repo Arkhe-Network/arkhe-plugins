@@ -1,0 +1,8 @@
+# Lints rigorosos
+[[lints]]
+lints = ["clippy::unwrap_used", "clippy::expect_used", "clippy::panic"]
+level = "deny"
+
+[[lints]]
+lints = ["clippy::pedantic"]
+level = "warn"

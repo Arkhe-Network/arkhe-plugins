@@ -16,7 +16,9 @@ pub struct Skill {
     pub okf_bundle_id: Option<String>,
 }
 
-pub enum SkillType { ModelInvoked }
+pub enum SkillType {
+    ModelInvoked,
+}
 
 pub struct SkillStep {
     pub order: u32,

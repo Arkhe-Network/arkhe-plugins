@@ -1,13 +1,13 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time::{Duration, Instant};
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CircuitState {
-    Closed,     // Normal: requisições passam
-    Open,       // Falha: requisições são bloqueadas
-    HalfOpen,   // Teste: uma requisição passa para verificar recuperação
+    Closed,   // Normal: requisições passam
+    Open,     // Falha: requisições são bloqueadas
+    HalfOpen, // Teste: uma requisição passa para verificar recuperação
 }
 
 pub struct CircuitBreaker {
@@ -20,9 +20,9 @@ pub struct CircuitBreaker {
 
 #[derive(Debug, Clone)]
 pub struct CircuitBreakerConfig {
-    pub failure_threshold: usize,    // número de falhas para abrir
-    pub success_threshold: usize,    // número de sucessos para fechar (HalfOpen)
-    pub timeout_secs: u64,           // tempo para passar de Open para HalfOpen
+    pub failure_threshold: usize, // número de falhas para abrir
+    pub success_threshold: usize, // número de sucessos para fechar (HalfOpen)
+    pub timeout_secs: u64,        // tempo para passar de Open para HalfOpen
 }
 
 impl Default for CircuitBreakerConfig {
@@ -92,10 +92,15 @@ impl CircuitBreaker {
             Err(e) => {
                 let failures = self.failure_count.fetch_add(1, Ordering::SeqCst) + 1;
                 let current_state = *self.state.lock().await;
-                if current_state == CircuitState::Closed && failures >= self.config.failure_threshold {
+                if current_state == CircuitState::Closed
+                    && failures >= self.config.failure_threshold
+                {
                     *self.state.lock().await = CircuitState::Open;
                     *self.last_state_change.lock().await = Instant::now();
-                    tracing::warn!("🔌 Circuit Breaker aberto (threshold: {})", self.config.failure_threshold);
+                    tracing::warn!(
+                        "🔌 Circuit Breaker aberto (threshold: {})",
+                        self.config.failure_threshold
+                    );
                 } else if current_state == CircuitState::HalfOpen {
                     *self.state.lock().await = CircuitState::Open;
                     *self.last_state_change.lock().await = Instant::now();

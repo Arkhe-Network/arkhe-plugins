@@ -1,9 +1,11 @@
 use crate::evolution::resource::{Resource, ResourceState};
-use crate::evolution::sepl::{Change, ChangeType, Proposal, Verification, AutogenesisOperator, Observation, EvolutionContext};
-use crate::skill::builtin::qvac_inference::QVACConfig;
+use crate::evolution::sepl::{
+    AutogenesisOperator, Change, ChangeType, EvolutionContext, Observation, Proposal, Verification,
+};
 use crate::hashtree::adapter::HashTreeStorage;
 use crate::observability::trace_manager::TraceManager;
-use serde::{Serialize, Deserialize};
+use crate::skill::builtin::qvac_inference::QVACConfig;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::info;
@@ -44,12 +46,21 @@ pub struct LoRAMetrics {
 pub struct LoRAFineTuner {
     storage: HashTreeStorage,
     trace_manager: Arc<TraceManager>,
+    #[allow(dead_code)]
     qvac_config: QVACConfig,
 }
 
 impl LoRAFineTuner {
-    pub fn new(storage: HashTreeStorage, trace_manager: Arc<TraceManager>, qvac_config: QVACConfig) -> Self {
-        Self { storage, trace_manager, qvac_config }
+    pub fn new(
+        storage: HashTreeStorage,
+        trace_manager: Arc<TraceManager>,
+        qvac_config: QVACConfig,
+    ) -> Self {
+        Self {
+            storage,
+            trace_manager,
+            qvac_config,
+        }
     }
 
     pub async fn finetune(
@@ -59,23 +70,30 @@ impl LoRAFineTuner {
     ) -> Result<LoRAAdapter, String> {
         info!("🧬 [LoRA] Iniciando fine-tuning: {}", config.adapter_name);
 
-        let base_model_data = self.storage.get_by_path(&format!("models/{}", config.base_model_hash)).await
+        let base_model_data = self
+            .storage
+            .get_by_path(&format!("models/{}", config.base_model_hash))
+            .await
             .map_err(|e| format!("Erro ao carregar modelo base: {}", e))?;
         let base_model_path = self.save_temp_model(&base_model_data).await?;
 
         let dataset_path = match &config.dataset_path {
             Some(path) => path.clone(),
-            None => self.generate_synthetic_dataset(&config.adapter_name).await?,
+            None => {
+                self.generate_synthetic_dataset(&config.adapter_name)
+                    .await?
+            }
         };
 
-        let result = self.run_qvac_finetune(
-            &base_model_path,
-            &dataset_path,
-            config,
-        ).await?;
+        let result = self
+            .run_qvac_finetune(&base_model_path, &dataset_path, config)
+            .await?;
 
         let adapter_data = result.adapter_bytes;
-        let adapter_hash = self.storage.put(&adapter_data).await
+        let adapter_hash = self
+            .storage
+            .put(&adapter_data)
+            .await
             .map_err(|e| format!("Erro ao salvar adaptador: {}", e))?;
 
         let adapter = LoRAAdapter {
@@ -94,13 +112,16 @@ impl LoRAFineTuner {
                 "metrics": adapter.metrics,
                 "adapter_hash": adapter.weights_hash,
             });
-            let _ = self.trace_manager.add_artifact(
-                tid,
-                &format!("lora_adapter_{}.json", adapter.name),
-                serde_json::to_vec(&artifact).unwrap(),
-                "application/json",
-                "Adaptador LoRA gerado via QVAC",
-            ).await;
+            let _ = self
+                .trace_manager
+                .add_artifact(
+                    tid,
+                    &format!("lora_adapter_{}.json", adapter.name),
+                    serde_json::to_vec(&artifact).unwrap(),
+                    "application/json",
+                    "Adaptador LoRA gerado via QVAC",
+                )
+                .await;
         }
 
         info!("✅ [LoRA] Fine-tuning concluído: {}", adapter.name);
@@ -163,14 +184,21 @@ impl AutogenesisOperator {
         base_model_hash: &str,
         adapter_name: &str,
     ) -> Result<Proposal, String> {
-        info!("💡 [SEPL] Propondo fine-tuning LoRA para: {}", context.resource_id);
+        info!(
+            "💡 [SEPL] Propondo fine-tuning LoRA para: {}",
+            context.resource_id
+        );
 
         let prompt = format!(
             "Based on observation: {:?}, propose a LoRA fine-tuning configuration for model {}. Rationale and expected improvement.",
             observation, base_model_hash
         );
 
-        let trace_id = self.trace_manager.start_trace(&context.resource_id).await.unwrap_or_default();
+        let trace_id = self
+            .trace_manager
+            .start_trace(&context.resource_id)
+            .await
+            .unwrap_or_default();
         let response = self.infer_with_strategy(&prompt, Some(&trace_id)).await?;
 
         let lora_config = LoRAConfig {
@@ -215,7 +243,10 @@ impl AutogenesisOperator {
             return Err("Verificação falhou, LoRA não será aplicado".to_string());
         }
 
-        info!("✅ [SEPL] Aplicando LoRA fine-tuning para: {}", proposal.resource_id);
+        info!(
+            "✅ [SEPL] Aplicando LoRA fine-tuning para: {}",
+            proposal.resource_id
+        );
 
         let tuner = LoRAFineTuner::new(
             self.storage.clone(),
@@ -230,8 +261,14 @@ impl AutogenesisOperator {
 
         let metadata = resource.metadata_mut();
         metadata.tags.push(format!("lora:{}", adapter.name));
-        metadata.metadata.insert("lora_adapter_hash".to_string(), adapter.weights_hash.clone());
-        metadata.metadata.insert("lora_base_model".to_string(), adapter.base_model_hash.clone());
+        metadata.metadata.insert(
+            "lora_adapter_hash".to_string(),
+            adapter.weights_hash.clone(),
+        );
+        metadata.metadata.insert(
+            "lora_base_model".to_string(),
+            adapter.base_model_hash.clone(),
+        );
 
         let _adapter_bytes = serde_json::to_vec(&adapter)
             .map_err(|e| format!("Erro ao serializar adaptador: {}", e))?;

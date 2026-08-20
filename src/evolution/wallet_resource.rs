@@ -1,5 +1,5 @@
-use crate::evolution::resource::{Resource, ResourceMetadata, ResourceInterface, ResourceState};
-use serde::{Serialize, Deserialize};
+use crate::evolution::resource::{Resource, ResourceInterface, ResourceMetadata, ResourceState};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -32,7 +32,7 @@ impl std::fmt::Display for Chain {
 }
 
 impl Chain {
-    pub fn from_str(s: &str) -> Self {
+    pub fn from_string(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "bitcoin" | "btc" => Self::Bitcoin,
             "ethereum" | "eth" => Self::Ethereum,
@@ -172,10 +172,13 @@ impl WalletResource {
             Chain::Tron => "T",
             _ => "addr",
         };
-        Ok(format!("{}{}", chain_prefix, hex::encode(&[0u8; 20])))
+        Ok(format!("{}{}", chain_prefix, hex::encode([0u8; 20])))
     }
 
-    pub async fn get_balance(&mut self, token_address: Option<&str>) -> Result<WalletBalance, String> {
+    pub async fn get_balance(
+        &mut self,
+        token_address: Option<&str>,
+    ) -> Result<WalletBalance, String> {
         let balance = self.inner.get_balance(token_address).await?;
         self.balances.push(balance.clone());
         self.metadata.updated_at = chrono::Utc::now().timestamp() as u64;
@@ -188,7 +191,10 @@ impl WalletResource {
         amount: &str,
         token_address: Option<&str>,
     ) -> Result<Transaction, String> {
-        let tx = self.inner.send_transaction(to, amount, token_address).await?;
+        let tx = self
+            .inner
+            .send_transaction(to, amount, token_address)
+            .await?;
         self.transactions.push(tx.clone());
 
         self.add_provenance(
@@ -213,15 +219,24 @@ impl WalletResource {
 }
 
 impl Resource for WalletResource {
-    fn metadata(&self) -> &ResourceMetadata { &self.metadata }
-    fn metadata_mut(&mut self) -> &mut ResourceMetadata { &mut self.metadata }
-    fn as_any(&self) -> &dyn std::any::Any { self }
-    fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
+    fn metadata(&self) -> &ResourceMetadata {
+        &self.metadata
+    }
+    fn metadata_mut(&mut self) -> &mut ResourceMetadata {
+        &mut self.metadata
+    }
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
     fn to_bytes(&self) -> Result<Vec<u8>, String> {
         serde_json::to_vec(self).map_err(|e| format!("Erro ao serializar WalletResource: {}", e))
     }
     fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-        serde_json::from_slice(bytes).map_err(|e| format!("Erro ao deserializar WalletResource: {}", e))
+        serde_json::from_slice(bytes)
+            .map_err(|e| format!("Erro ao deserializar WalletResource: {}", e))
     }
 }
 
@@ -258,7 +273,7 @@ impl WDKWalletWrapper {
         _token_address: Option<&str>,
     ) -> Result<Transaction, String> {
         Ok(Transaction {
-            hash: format!("0x{}", hex::encode(&[0u8; 32])),
+            hash: format!("0x{}", hex::encode([0u8; 32])),
             from: self.address.clone(),
             to: to.to_string(),
             amount: amount.to_string(),

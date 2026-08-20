@@ -3,8 +3,12 @@ use crate::evolution::desci_node_resource::{RoyaltyConfig, RoyaltySplit};
 pub struct X402Middleware {}
 
 impl X402Middleware {
-    pub fn new(_url: &str) -> Self { Self {} }
-    pub fn with_price_tag(&self, _tag: &str) -> Self { Self {} }
+    pub fn new(_url: &str) -> Self {
+        Self {}
+    }
+    pub fn with_price_tag(&self, _tag: &str) -> Self {
+        Self {}
+    }
 }
 
 pub struct X402RoyaltyServer {
@@ -43,6 +47,12 @@ impl X402RoyaltyServer {
 }
 
 pub struct X402Client {}
+
+impl Default for X402Client {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl X402Client {
     pub fn new() -> Self {

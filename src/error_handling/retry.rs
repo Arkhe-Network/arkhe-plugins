@@ -46,7 +46,9 @@ impl RetryContext {
                     let delay = self.calculate_delay();
                     tracing::warn!(
                         "⏳ Tentativa {} falhou: {}. Retentando em {}ms...",
-                        self.attempt, e, delay.as_millis()
+                        self.attempt,
+                        e,
+                        delay.as_millis()
                     );
                     sleep(delay).await;
                 }
@@ -70,7 +72,9 @@ impl RetryContext {
                     let delay = self.calculate_delay();
                     tracing::warn!(
                         "⏳ Tentativa {} falhou: {}. Retentando em {}ms...",
-                        self.attempt, e, delay.as_millis()
+                        self.attempt,
+                        e,
+                        delay.as_millis()
                     );
                     sleep(delay).await;
                 }
@@ -79,8 +83,9 @@ impl RetryContext {
     }
 
     fn calculate_delay(&self) -> Duration {
-        let delay = (self.config.base_delay_ms as f64 * self.config.backoff_factor.powi(self.attempt as i32 - 1))
-            .min(self.config.max_delay_ms as f64);
+        let delay = (self.config.base_delay_ms as f64
+            * self.config.backoff_factor.powi(self.attempt as i32 - 1))
+        .min(self.config.max_delay_ms as f64);
         Duration::from_millis(delay as u64)
     }
 }

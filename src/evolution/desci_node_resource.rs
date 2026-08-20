@@ -1,4 +1,4 @@
-use crate::evolution::resource::{Resource, ResourceMetadata, ResourceInterface, ResourceState};
+use crate::evolution::resource::{ResourceInterface, ResourceMetadata, ResourceState};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -52,7 +52,10 @@ impl std::fmt::Display for ComponentType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum NodeStatus { Draft, Published }
+pub enum NodeStatus {
+    Draft,
+    Published,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeVersion {}
