@@ -1,0 +1,29 @@
+[package]
+name = "arkhe-core"
+version = "12.3.0"
+edition = "2021"
+authors = ["Arkhe Architects <architects@arkhe.ai>"]
+description = "ARKHE Core — SymmetryGenerator, OntologyManifold (Z3/SMT), Safety Manifold"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+chrono = { version = "0.4", features = ["serde", "clock"] }
+tracing = "0.1"
+tokio = { version = "1.0", features = ["full"] }
+parking_lot = "0.12"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "symmetry_benchmarks"
+harness = false
+
+[lib]
+name = "arkhe_core"
+path = "src/lib.rs"
+
+[workspace]
