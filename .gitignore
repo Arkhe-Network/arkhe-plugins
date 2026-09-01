@@ -11,3 +11,6 @@ Cathedral/logs/
 # Added by cargo
 
 /target
+arkhe-compiler/mlir/build/
+arkhe-compiler/mlir/llvm-project/
+arkhe-compiler/mlir/arkhe-dialect/build/
